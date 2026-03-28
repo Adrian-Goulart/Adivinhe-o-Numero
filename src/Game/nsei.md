@@ -1,0 +1,1 @@
+Vi que a chamada de métodos não é algo recomendado para menus, então posso utilizar o while
