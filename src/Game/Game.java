@@ -1,91 +1,109 @@
 package Game;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Scanner;
 
 public class Game {
-    private Scanner sc = new Scanner(System.in);
-    private final int NUM_MIN = 1;
+    private final Scanner sc = new Scanner(System.in);
     private int choice;
     private int tries = 0;
     private int triesLimit = 5;
     private boolean cheat = false;
     private boolean isTriesLimitActive = false;
-    private int randomNum;
 
     public Game() {
         gameStart();
     }
 
     public void gameStart() {
-        System.out.println("--Início--");
-        System.out.println("1 - Modos de Jogo");
-        System.out.println("2 - Configuração");
-        choice = Integer.parseInt(sc.nextLine());
+        boolean gameStartMenu = true;
+        while (gameStartMenu) {
+            System.out.println("--Início--");
+            System.out.println("1 - Modos de Jogo");
+            System.out.println("2 - Configuração");
+            checkScanner();
 
-        switch (choice) {
-            case 1 -> gameModes();
-            case 2 -> gameConfigurations();
-            default -> gameStart();
+            gameStartMenu = switch (choice) {
+                case 1 -> {
+                    gameModeSelect();
+                    yield false;
+                }
+                case 2 -> {
+                    gameConfigurations();
+                    yield false;
+                }
+                default -> true;
+            };
         }
     }
 
-    public void gameModes() {
+    public void gameModeSelect() {
+        boolean gameModeMenu = true;
         this.tries = 0;
-        System.out.println("--Modos de Jogo--");
-        System.out.println("1 - Padrão (1 - 100)");
-        System.out.println("2 - Médio (1 - 1000)");
-        System.out.println("3 - Difícil? (1 - 10000)");
-        System.out.println("4 - Personalizado");
-        System.out.println("0 - Voltar");
-        choice = Integer.parseInt(sc.nextLine());
 
-        switch (choice) {
-            case 0 -> gameStart();
-            case 1 -> gameMode(NUM_MIN, 100);
-            case 2 -> gameMode(NUM_MIN, 1000);
-            case 3 -> gameMode(NUM_MIN, 10000);
-            case 4 -> personalizedMode();
-            default -> gameModes();
+        while (gameModeMenu) {
+            System.out.println("--Modos de Jogo--");
+            System.out.println("1 - Padrão (1 - 100)");
+            System.out.println("2 - Médio (1 - 1000)");
+            System.out.println("3 - Difícil? (1 - 10000)");
+            System.out.println("4 - Personalizado");
+            System.out.println("0 - Voltar");
+            checkScanner();
+
+            gameModeMenu = switch (choice) {
+                case 0 -> {
+                    gameStart();
+                    yield false;
+                }
+                case 1 -> {
+                    gameMode(1, 100);
+                    yield false;
+                }
+                case 2 -> {
+                    gameMode(1, 1000);
+                    yield false;
+                }
+                case 3 -> {
+                    gameMode(1, 10000);
+                    yield false;
+                }
+                case 4 -> {
+                    personalizedMode();
+                    yield false;
+                }
+                default -> true;
+            };
         }
     }
 
-    public void gameConfigurations() {
-        System.out.println("--Configurações--");
-        System.out.println("1 - Cheat");
-        System.out.println("2 - Limite de tentativas");
-        System.out.println("0 - Voltar");
-        choice = Integer.parseInt(sc.nextLine());
-
-        switch (choice) {
-            case 1 -> toggleCheat();
-            case 2 -> triesLimit();
-            default -> gameStart();
-        }
-    }
-
-    public void gameMode(int NUM_MIN, int numMax) {
-        int range = numMax - NUM_MIN;
-        randomNum = (int) (Math.random() * range) + NUM_MIN;
+    public void gameMode(int numMin, int numMax) {
         int answer;
-        String writingTryOrTries;
+        int range = numMax - numMin;
+        int randomNum = (int) (Math.random() * range) + numMin;
 
-        System.out.println("De " + NUM_MIN + " a " + numMax);
+        System.out.println("De " + numMin + " a " + numMax);
         System.out.println("Numero gerado, qual seu chute?");
         System.out.println((cheat) ? "colinha: " + randomNum : "");
 
+        Instant startTime = Instant.now();
         do {
-            tries++;
             answer = Integer.parseInt(sc.nextLine());
+            tries++;
             if (answer == randomNum) {
-                writingTryOrTries = (tries > 1) ? "Tentativas" : "Tentativa";
+                Instant endTime = Instant.now();
+                long time = Duration.between(startTime, endTime).getSeconds();
+                String writingTryOrTries = (tries > 1) ? "Tentativas" : "Tentativa";
                 System.out.println("Acertou!");
                 System.out.println("Com: " + tries + " " + writingTryOrTries);
+                System.out.println("Tempo: " + time + " segundos");
+                gameStart();
             } else if (answer < randomNum) {
                 System.out.println("O número é maior que: " + answer);
             } else {
                 System.out.println("O número é menor que: " + answer);
             }
-        } while (answer != randomNum && tryLimitCondition());
+        } while (answer != randomNum && tryLimitExpression(randomNum));
     }
 
     public void personalizedMode() {
@@ -94,7 +112,35 @@ public class Game {
         System.out.println("O valor mínimo por padrão é 1");
         System.out.println("Qual será o valor máximo?");
         personalizedMaxValue = Integer.parseInt(sc.nextLine());
-        gameMode(NUM_MIN, personalizedMaxValue);
+        gameMode(1, personalizedMaxValue);
+    }
+
+    public void gameConfigurations() {
+        boolean gameConfigurationsMenu = true;
+        while (gameConfigurationsMenu) {
+            System.out.println("--Configurações--");
+            System.out.println("1 - Cheat");
+            System.out.println("2 - Limite de tentativas");
+//          System.out.println("3 - Limite de tentativas por tempo");
+            System.out.println("0 - Voltar");
+            checkScanner();
+
+            gameConfigurationsMenu = switch (choice) {
+                case 0 -> {
+                    gameStart();
+                    yield false;
+                }
+                case 1 -> {
+                    toggleCheat();
+                    yield false;
+                }
+                case 2 -> {
+                    triesLimitConfiguration();
+                    yield false;
+                }
+                default -> true;
+            };
+        }
     }
 
     public void toggleCheat() {
@@ -103,40 +149,55 @@ public class Game {
         gameStart();
     }
 
-    public void triesLimit() {
-        System.out.println("--Tentativas Configuração--");
-        System.out.println("Quantidade de tentativas: " + isTriesLimitActive + " " + triesLimit);
-        System.out.println("1 - Ativar/Desativar");
-        System.out.println("2 - Escolher quantidade (Padrão 5)");
-        System.out.println("0 - Voltar");
-        choice = Integer.parseInt(sc.nextLine());
+    public void triesLimitConfiguration() {
+        boolean triesLimitConfigurationMenu = true;
+        while (triesLimitConfigurationMenu) {
+            System.out.println("--Tentativas Configuração--");
+            System.out.println("Quantidade de tentativas: " + ((isTriesLimitActive) ? "Ativo" : "Desativado") + " | Quantidade: " + triesLimit);
+            System.out.println("1 - Ativar/Desativar");
+            System.out.println("2 - Escolher quantidade (Padrão 5)");
+            System.out.println("0 - Voltar");
+            checkScanner();
 
-        switch (choice) {
-            case 0 -> gameConfigurations();
-            case 1 -> {
-                isTriesLimitActive = !isTriesLimitActive;
-                triesLimit();
-            }
-            case 2 -> {
-                System.out.println("Digite a quantidade");
-                triesLimit = Integer.parseInt(sc.nextLine());
-                triesLimit();
-            }
-            default -> {
-                System.out.println("Escolha uma oopção válida.");
-                triesLimit();
-            }
+            triesLimitConfigurationMenu = switch (choice) {
+                case 0 -> {
+                    gameConfigurations();
+                    yield false;
+                }
+                case 1 -> {
+                    isTriesLimitActive = !isTriesLimitActive;
+                    yield true;
+                }
+                case 2 -> {
+                    System.out.println("Digite a quantidade");
+                    triesLimit = Integer.parseInt(sc.nextLine());
+                    yield true;
+                }
+                default -> {
+                    System.out.println("Escolha uma opção válida.");
+                    yield true;
+                }
+            };
         }
     }
 
-    public boolean tryLimitCondition() {
+    public boolean tryLimitExpression(int randomNum) {
         if (isTriesLimitActive) {
             if (tries == triesLimit) {
                 System.out.println("Acabou as tentativas!");
-                System.out.println("O númeor era: " + randomNum);
+                System.out.println("O número era: " + randomNum);
                 return false;
             }
         }
         return true;
+    }
+
+    public void checkScanner() {
+        try {
+            choice = Integer.parseInt(sc.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Formato inválido, por favor insira um número.");
+            choice = -1;
+        }
     }
 }
