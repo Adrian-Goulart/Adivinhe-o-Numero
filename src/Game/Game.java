@@ -24,17 +24,18 @@ public class Game {
             System.out.println("2 - Configuração");
             checkScanner();
 
-            gameStartMenu = switch (choice) {
+            switch (choice) {
+                case 0 -> gameStartMenu = false;
                 case 1 -> {
                     gameModeSelect();
-                    yield false;
+                    return;
                 }
                 case 2 -> {
                     gameConfigurations();
-                    yield false;
+                    return;
                 }
-                default -> true;
-            };
+                default -> System.out.println("Inválido");
+            }
         }
     }
 
@@ -79,7 +80,7 @@ public class Game {
 
     public void gameMode(int numMin, int numMax) {
         int answer;
-        int range = numMax - numMin;
+        int range = (numMax - numMin) + 1;
         int randomNum = (int) (Math.random() * range) + numMin;
 
         System.out.println("De " + numMin + " a " + numMax);
@@ -97,7 +98,6 @@ public class Game {
                 System.out.println("Acertou!");
                 System.out.println("Com: " + tries + " " + writingTryOrTries);
                 System.out.println("Tempo: " + time + " segundos");
-                gameStart();
             } else if (answer < randomNum) {
                 System.out.println("O número é maior que: " + answer);
             } else {
@@ -107,12 +107,21 @@ public class Game {
     }
 
     public void personalizedMode() {
-        int personalizedMaxValue;
-        System.out.println("--Modo Personalizado--");
-        System.out.println("O valor mínimo por padrão é 1");
-        System.out.println("Qual será o valor máximo?");
-        personalizedMaxValue = Integer.parseInt(sc.nextLine());
-        gameMode(1, personalizedMaxValue);
+        boolean running = true;
+        do {
+            int personalizedMaxValue;
+            System.out.println("--Modo Personalizado--");
+            System.out.println("O valor mínimo por padrão é 1");
+            System.out.println("Qual será o valor máximo?");
+
+            try {
+                personalizedMaxValue = Integer.parseInt(sc.nextLine());
+                gameMode(1, personalizedMaxValue);
+                running = false;
+            } catch (NumberFormatException e) {
+                System.out.println("Insira um valor válido");
+            }
+        } while (running);
     }
 
     public void gameConfigurations() {
@@ -121,7 +130,6 @@ public class Game {
             System.out.println("--Configurações--");
             System.out.println("1 - Cheat");
             System.out.println("2 - Limite de tentativas");
-//          System.out.println("3 - Limite de tentativas por tempo");
             System.out.println("0 - Voltar");
             checkScanner();
 
